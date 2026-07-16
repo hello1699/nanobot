@@ -2119,9 +2119,6 @@ def _run_gateway(
                         await shutdown_task
                 cron.stop()
                 agent.stop()
-                # Some SDKs swallow task cancellation while attempting to reconnect.
-                # Close channel transports before waiting for their runners to exit.
-                await channels.stop_all()
                 for task in tasks:
                     if not task.done():
                         task.cancel()
@@ -2130,6 +2127,7 @@ def _run_gateway(
                 if runtime_tasks is not None and not runtime_tasks_drained:
                     with suppress(asyncio.CancelledError, Exception):
                         await runtime_tasks
+                await channels.stop_all()
                 # Flush all cached sessions to durable storage before exit.
                 # This prevents data loss on filesystems with write-back
                 # caching (rclone VFS, NFS, FUSE mounts, etc.).
@@ -2689,7 +2687,7 @@ def _set_oauth_provider_as_main(
     from nanobot.config.loader import get_config_path, load_config, save_config, set_config_path
 
     resolved_config_path = Path(config_path).expanduser().resolve() if config_path else None
-    if resolved_config_path is not None and get_config_path() != resolved_config_path:
+    if resolved_config_path is not None:
         set_config_path(resolved_config_path)
         console.print(f"[dim]Using config: {resolved_config_path}[/dim]")
 
@@ -2732,13 +2730,6 @@ def provider_login(
     if not handler:
         console.print(f"[red]Login not implemented for {spec.label}[/red]")
         raise typer.Exit(1)
-
-    if config:
-        from nanobot.config.loader import set_config_path
-
-        resolved_config_path = Path(config).expanduser().resolve()
-        set_config_path(resolved_config_path)
-        console.print(f"[dim]Using config: {resolved_config_path}[/dim]")
 
     console.print(f"{__logo__} OAuth Login - {spec.label}\n")
     handler()

@@ -52,7 +52,7 @@
 nanobot is a self-hosted personal AI agent runtime. It can:
 
 - run in a browser WebUI or terminal
-- connect to Telegram, Discord, Slack, WeChat, Email, Mattermost, and other chat apps
+- connect to Telegram, Discord, Slack, WeChat, Email, Mattermost, Yuanbao, and other chat apps
 - use tools such as files, shell, web search, web fetch, MCP, cron, image generation, and subagents
 - keep session history and long-term memory through Dream
 - run long-horizon goals and scheduled automations
@@ -372,7 +372,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, review, and contribution gui
 
 ## Contact
 
-Nanobot was started by [Xubin Ren](https://github.com/re-bin) as a personal open-source project and is now maintained collaboratively with contributors from the open-source community. Feel free to contact [xubinrencs@gmail.com](mailto:xubinrencs@gmail.com) for questions, ideas, or collaboration.
+This project was started by [Xubin Ren](https://github.com/re-bin) as a personal open-source project and continues to be maintained in an individual capacity using personal resources, with contributions from the open-source community. Feel free to contact [xubinrencs@gmail.com](mailto:xubinrencs@gmail.com) for questions, ideas, or collaboration.
 
 ### Contributors
 

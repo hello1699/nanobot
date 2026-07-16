@@ -12,6 +12,7 @@ from nanobot.bus.events import InboundMessage, OutboundMessage
 from nanobot.bus.queue import MessageBus
 from nanobot.pairing import (
     PAIRING_CODE_META_KEY,
+    approve_code,
     format_pairing_reply,
     generate_code,
     is_approved,
@@ -228,6 +229,23 @@ class BaseChannel(ABC):
         """Handle an incoming message: check permissions, issue pairing codes in DMs, or forward to bus."""
         if not self.is_allowed(sender_id):
             if is_dm:
+                # Check if the message content IS a valid pending pairing code (auto-approve)
+                code = (content or "").strip().upper()
+                if approve_code(code):
+                    self.logger.info(
+                        "Auto-approved {} via pairing code {}", sender_id, code,
+                    )
+                    # Re-forward now that sender is approved (recursive call)
+                    return await self._handle_message(
+                        sender_id=sender_id,
+                        chat_id=chat_id,
+                        content=content,
+                        media=media,
+                        metadata=metadata,
+                        session_key=session_key,
+                        is_dm=is_dm,
+                    )
+
                 code = generate_code(self.name, str(sender_id))
                 await self.send(
                     OutboundMessage(

@@ -291,6 +291,20 @@ CHANNEL_SETUP_SPECS: dict[str, ChannelSetupSpec] = {
         required=(_required("appId"), _required("appSecret")),
         official_url="https://open.feishu.cn/app",
     ),
+    "yuanbao": ChannelSetupSpec(
+        fields={
+            "appId": _field(),
+            "appSecret": _field("secret"),
+            "botId": _field(),
+            "wsUrl": _field(),
+            "apiDomain": _field(),
+            "routeEnv": _field(),
+            "allowFrom": _field("list"),
+            "streaming": _field("bool"),
+        },
+        required=(_required("appId"), _required("appSecret")),
+        official_url="https://bot.yuanbao.tencent.com",
+    ),
 }
 
 

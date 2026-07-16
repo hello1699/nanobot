@@ -104,6 +104,7 @@ If `nanobot channels status` does not show the channel as enabled, the config sn
 | **Wecom** | Bot ID + Bot Secret |
 | **Microsoft Teams** | App ID + App Password + public HTTPS endpoint |
 | **Mochat** | Claw token (auto-setup available) |
+| **Yuanbao** | App ID + App Secret (Tencent Yuanbao Bot WebSocket) |
 | **Signal** | signal-cli daemon + phone number |
 
 <details>
@@ -988,5 +989,54 @@ nanobot gateway
 > [!TIP]
 > The channel automatically reconnects to the signal-cli daemon with exponential backoff if the connection drops.
 > Markdown in bot replies is automatically converted to Signal text styles (bold, italic, code, etc.).
+
+</details>
+
+<details>
+<summary><b>Yuanbao (Tencent Yuanbao Bot)</b></summary>
+
+Connects to the Tencent Yuanbao Bot platform via **persistent WebSocket** using protobuf protocol. Supports both private messages (C2C) and group chats.
+
+This channel is bundled with nanobot and does not require any extra dependency installation beyond the core nanobot package.
+
+**1. Create a Yuanbao bot**
+
+Go to the [Tencent Yuanbao Bot Console](https://bot.yuanbao.tencent.com), create an application, and obtain your **App ID** and **App Secret**.
+
+**2. Configure**
+
+```json
+{
+  "channels": {
+    "yuanbao": {
+      "enabled": true,
+      "appId": "YOUR_APP_ID",
+      "appSecret": "YOUR_APP_SECRET",
+      "allowFrom": ["*"]
+    }
+  }
+}
+```
+
+> - `appId`: Your Yuanbao application ID (required).
+> - `appSecret`: Your Yuanbao application secret (required).
+> - `botId`: Optional. The bot ID returned by the sign-token API; usually auto-detected.
+> - `wsUrl`: WebSocket gateway URL. Defaults to `wss://bot-wss.yuanbao.tencent.com/wss/connection`.
+> - `apiDomain`: REST API domain. Defaults to `https://bot.yuanbao.tencent.com`.
+> - `routeEnv`: Optional route environment for request routing.
+> - `streaming`: Enable streaming output support (requires `send_delta` implementation).
+> - `allowFrom`: Sender allowlist. Use `["*"]` to allow all users, or omit for pairing-based access.
+
+**3. Run**
+
+```bash
+nanobot gateway
+```
+
+> [!TIP]
+> - The channel maintains a persistent WebSocket connection with automatic reconnection (exponential backoff).
+> - Supports text and media messages (images, files) via COS upload.
+> - Includes a built-in sticker library with fuzzy search support — send stickers with `[sticker:name]` or `[表情:name]`.
+> - Protocol uses hand-written protobuf codec — no protobuf compiler dependency.
 
 </details>
