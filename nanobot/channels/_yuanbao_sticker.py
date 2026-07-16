@@ -415,10 +415,10 @@ def _multiset_char_hit_ratio(needle: str, haystack: str) -> float:
 def _bigram_jaccard(a: str, b: str) -> float:
     if len(a) < 2 or len(b) < 2:
         return 0.0
-    A = {a[i:i + 2] for i in range(len(a) - 1)}
-    B = {b[i:i + 2] for i in range(len(b) - 1)}
-    inter = len(A & B)
-    union = len(A) + len(B) - inter
+    a_bigrams = {a[i:i + 2] for i in range(len(a) - 1)}
+    b_bigrams = {b[i:i + 2] for i in range(len(b) - 1)}
+    inter = len(a_bigrams & b_bigrams)
+    union = len(a_bigrams) + len(b_bigrams) - inter
     return inter / union if union else 0.0
 
 

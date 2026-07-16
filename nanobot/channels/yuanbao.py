@@ -33,12 +33,10 @@ import uuid
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from loguru import logger as _base_logger
-
-logger = _base_logger.bind(channel="yuanbao")
 from pydantic import Field
 from websockets.asyncio.client import ClientConnection
 from websockets.asyncio.client import connect as ws_connect
@@ -46,7 +44,6 @@ from websockets.exceptions import ConnectionClosed as WsConnectionClosed
 
 from nanobot.bus.events import OutboundMessage
 from nanobot.bus.queue import MessageBus
-from nanobot.channels.base import BaseChannel
 from nanobot.channels._yuanbao_media import (
     build_file_msg_body,
     build_image_msg_body,
@@ -59,29 +56,32 @@ from nanobot.channels._yuanbao_media import (
 from nanobot.channels._yuanbao_proto import (
     CMD_TYPE,
     HERMES_INSTANCE_ID,
-    WS_HEARTBEAT_FINISH,
-    WS_HEARTBEAT_RUNNING,
+    _fields_to_dict,
+    _get_string,
+    _get_varint,
+    _parse_fields,
     decode_conn_msg,
     decode_inbound_push,
+    decode_send_c2c_rsp,
     encode_auth_bind,
     encode_ping,
     encode_push_ack,
     encode_send_c2c_message,
     encode_send_group_message,
-    encode_send_group_heartbeat,
-    encode_send_private_heartbeat,
     next_seq_no,
 )
 from nanobot.channels._yuanbao_sticker import (
     build_sticker_msg_body,
     get_random_sticker,
     get_sticker_by_name,
-    search_stickers,
 )
+from nanobot.channels.base import BaseChannel
 from nanobot.config.paths import get_media_dir
 from nanobot.config.schema import Base
 from nanobot.security.network import validate_url_target
 from nanobot.utils.helpers import safe_filename
+
+logger = _base_logger.bind(channel="yuanbao")
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -595,8 +595,6 @@ class YuanbaoChannel(BaseChannel):
     @staticmethod
     def _extract_connect_id(decoded_msg: dict) -> str | None:
         """Extract connectId from decoded BIND_ACK message."""
-        from nanobot.channels._yuanbao_proto import _fields_to_dict, _get_string, _get_varint, _parse_fields
-
         data: bytes | None = decoded_msg.get("data")
         if not data:
             return None
@@ -736,7 +734,6 @@ class YuanbaoChannel(BaseChannel):
                 data_preview = " ".join(f"{b:02x}" for b in data[:32]) if data else "(empty)"
                 # Try to decode business-level response for known commands
                 if data and cmd in ("send_c2c_message",):
-                    from nanobot.channels._yuanbao_proto import decode_send_c2c_rsp
                     biz_rsp = decode_send_c2c_rsp(data)
                     logger.info(
                         "yuanbao: RPC response: cmd={} msg_id={} status={} biz_result={} err_msg={!r} "
@@ -849,13 +846,13 @@ class YuanbaoChannel(BaseChannel):
                             # Convert string msg_type (e.g. "TIMTextElem") to int
                             raw_mt = el.get("msg_type") or el.get("MsgType") or 0
                             if isinstance(raw_mt, str):
-                                _MSG_TYPE_MAP = {
+                                _msg_type_map = {
                                     "TIMTextElem": 1, "TIMImageElem": 2,
                                     "TIMSoundElem": 3, "TIMCustomElem": 4,
                                     "TIMFileElem": 5, "TIMFaceElem": 6,
                                     "TIMVideoFileElem": 7,
                                 }
-                                mt = _MSG_TYPE_MAP.get(raw_mt, 1)
+                                mt = _msg_type_map.get(raw_mt, 1)
                             else:
                                 mt = int(raw_mt) if raw_mt else 0
                             mc = el.get("msg_content") or el.get("MsgContent") or {}

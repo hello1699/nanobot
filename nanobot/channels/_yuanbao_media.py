@@ -20,11 +20,9 @@ import hashlib
 import hmac
 import logging
 import os
-import secrets
 import struct
 import time
 import urllib.parse
-from typing import Any, Optional
 
 import httpx
 
@@ -172,7 +170,6 @@ def _build_cos_authorization(
     """
     tmp_secret_id = credentials["tmpSecretId"]
     tmp_secret_key = credentials["tmpSecretKey"]
-    session_token = credentials.get("sessionToken", "")
 
     # Parse COS URL from credentials
     cos_url = credentials.get("url", "")
